@@ -1,6 +1,7 @@
 ﻿using AuctionService.DTOs;
 using AuctionService.Entities;
 using AutoMapper;
+using Contracts;
 
 namespace AuctionService.Utils;
 
@@ -26,6 +27,10 @@ public class MappingProfiles : Profile
                        return srcMember != null;
                });
            });
+
+        CreateMap<AuctionDTO, AuctionCreated>();
+         CreateMap<Auction, AuctionUpdated>().IncludeMembers(x=>x.Item);
+         CreateMap<Item, AuctionUpdated>();
     }
 }
 

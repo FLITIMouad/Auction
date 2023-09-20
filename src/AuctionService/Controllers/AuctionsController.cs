@@ -3,6 +3,8 @@ using AuctionService.DTOs;
 using AuctionService.Entities;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Contracts;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,14 +17,16 @@ public class AuctionsController : ControllerBase
 {
     private readonly AuctionDbContext _context;
     private readonly IMapper _mapper;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public AuctionsController(AuctionDbContext context, IMapper mapper)
+    public AuctionsController(AuctionDbContext context, IMapper mapper, IPublishEndpoint publishEndpoint)
     {
         _context = context;
         _mapper = mapper;
+        _publishEndpoint = publishEndpoint;
     }
     [HttpGet]
-    public async Task<ActionResult<List<AuctionDTO>>> GetAllAuctions(string date="")
+    public async Task<ActionResult<List<AuctionDTO>>> GetAllAuctions(string date = "")
     {
         var query = _context.Auctions.OrderBy(a => a.Item.Make).AsQueryable();
         if (!string.IsNullOrWhiteSpace(date))
@@ -52,6 +56,10 @@ public class AuctionsController : ControllerBase
         //Todo: add current user As seller
 
         _context.Auctions.Add(auction);
+
+        var newauction = _mapper.Map<AuctionDTO>(auction);
+        await _publishEndpoint.Publish(_mapper.Map<AuctionCreated>(newauction));
+        
         var result = await _context.SaveChangesAsync() > 0;
 
         if (!result)
@@ -67,6 +75,11 @@ public class AuctionsController : ControllerBase
         if (auction == null) return NotFound();
         //TODO : check SELLER == CurrentUser
         _mapper.Map<UpdateAuctionDTO, Item>(updateAuctionDTO, auction.Item);
+
+        auction.UpdatedAt=DateTime.UtcNow;
+       
+        await _publishEndpoint.Publish(_mapper.Map<AuctionUpdated>(auction));
+        
         var result = await _context.SaveChangesAsync() > 0;
         if (result) return Ok();
 
@@ -80,6 +93,9 @@ public class AuctionsController : ControllerBase
         if (auction == null) return NotFound();
         //TODO : check SELLER == CurrentUser
         _context.Auctions.Remove(auction);
+
+        _publishEndpoint.Publish(new AuctionDeleted{Id = id.ToString()});
+
         var result = await _context.SaveChangesAsync() > 0;
         if (result) return Ok();
 
