@@ -1,6 +1,4 @@
-using System.Collections.Immutable;
-using System.Runtime.InteropServices;
-using AuctionService;
+using AuctionService.Consumers;
 using AuctionService.Data;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -46,6 +44,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     op.TokenValidationParameters.ValidateAudience = false;
     op.TokenValidationParameters.NameClaimType = "username";
 });
+
+
 //builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(op=>{
        op.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Contracts;
 using MassTransit;
-using MassTransit.Transports;
 using MongoDB.Entities;
 using SearchService.Models;
 
