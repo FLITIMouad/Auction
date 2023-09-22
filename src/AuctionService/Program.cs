@@ -1,8 +1,11 @@
+using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using AuctionService;
 using AuctionService.Data;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +28,7 @@ builder.Services.AddMassTransit(x =>
         o.UsePostgres();
         o.UseBusOutbox();
     });
+
     x.AddConsumersFromNamespaceContaining<AuctionFaultConsumer>();
     x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("auction", false));
 
@@ -33,8 +37,27 @@ builder.Services.AddMassTransit(x =>
         cfg.ConfigureEndpoints(context);
     });
 });
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddJwtBearer(op =>
+{
+    op.Authority = builder.Configuration["IdentityServiceUrl"];
+    op.RequireHttpsMetadata=false;
+    op.TokenValidationParameters.ValidateAudience = false;
+    op.TokenValidationParameters.NameClaimType = "username";
+});
 //builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(op=>{
+       op.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+});
 
 var app = builder.Build();
 
@@ -43,11 +66,16 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    
 }
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+
 app.UseAuthorization();
+
+
 
 app.MapControllers();
 try

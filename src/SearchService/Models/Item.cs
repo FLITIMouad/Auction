@@ -4,7 +4,6 @@ namespace SearchService.Models;
 
 public class Item:Entity
 {
-   
     public string Seller { get; set; }
     public string Winner { get; set; }
     public DateTime CreatedAt { get; set; }
