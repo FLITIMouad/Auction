@@ -20,7 +20,6 @@ public class AuctionSvcHttpClient
         .Sort(x => x.Ascending(i => i.UpdatedAt))
         .Project(x => x.UpdatedAt.ToString())
         .ExecuteFirstAsync();
-        var t = _config["AuctionServiceUrl"] + "/api/auctions?date="+lastUpdated;
         return await _http.GetFromJsonAsync<List<Item>>(_config["AuctionServiceUrl"] + "/api/auctions?date="+lastUpdated);
     }
 }
