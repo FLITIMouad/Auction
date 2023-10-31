@@ -18,6 +18,13 @@
       }
     }
   },
-  "$schema": "https://json.schemastore.org/launchsettings.json"
- 
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:63314/",
+      "sslPort": 44398
+    }
+  }
 }
